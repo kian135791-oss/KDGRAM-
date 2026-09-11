@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "KDGRAM_GITHUB_READY.zip"
 
 permissions:
   contents: write
@@ -22,6 +20,7 @@ jobs:
         run: |
           mkdir -p .kdgram-extract
           unzip -o KDGRAM_GITHUB_READY.zip -d .kdgram-extract
+          rm -rf .kdgram-extract/.github
           cp -a .kdgram-extract/. .
           rm -rf .kdgram-extract
           rm -f KDGRAM_GITHUB_READY.zip
@@ -32,4 +31,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Extract KDGRAM project" || echo "No changes"
-          git push. 
+          git push
