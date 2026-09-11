@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "KDGRAM_GITHUB_READY.zip"
 
 jobs:
   build:
@@ -25,12 +23,6 @@ jobs:
       - name: Setup Android
         uses: android-actions/setup-android@v3
 
-      - name: Extract KDGRAM
-        run: |
-          mkdir -p kdgram
-          unzip -o KDGRAM_GITHUB_READY.zip -d kdgram
-          rm -rf kdgram/.github
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -42,19 +34,18 @@ jobs:
           version: 10.15.0
 
       - name: Install dependencies
-        working-directory: kdgram
         run: pnpm install --no-frozen-lockfile
 
       - name: Generate Android project
-        working-directory: kdgram/apps/mobile
+        working-directory: apps/mobile
         run: npx expo prebuild --platform android --no-install
 
       - name: Build APK
-        working-directory: kdgram/apps/mobile/android
+        working-directory: apps/mobile/android
         run: chmod +x gradlew && ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: KDGRAM-Android-APK
-          path: kdgram/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
