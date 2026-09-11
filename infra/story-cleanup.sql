@@ -1,0 +1,3 @@
+-- Story visibility is enforced by expires_at > now().
+-- Run this periodically (e.g. every 15 minutes) if physical deletion is desired:
+-- delete from stories where expires_at <= now();

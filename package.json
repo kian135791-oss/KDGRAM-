@@ -1,0 +1,1 @@
+{"name":"kdgram","private":true,"version":"0.2.0","packageManager":"pnpm@10.15.0","scripts":{"dev:web":"pnpm --filter @kdgram/web dev","dev:api":"pnpm --filter @kdgram/api start:dev","dev:mobile":"pnpm --filter @kdgram/mobile start","db:up":"docker compose -f infra/docker-compose.yml up -d"},"devDependencies":{"typescript":"^5.9.2"}}

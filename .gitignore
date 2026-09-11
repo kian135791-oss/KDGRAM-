@@ -1,0 +1,10 @@
+node_modules/
+.expo/
+.next/
+dist/
+.env
+.env.*
+*.keystore
+*.p8
+*.p12
+*.mobileprovision

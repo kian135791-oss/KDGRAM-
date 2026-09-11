@@ -1,0 +1,17 @@
+import 'reflect-metadata';
+import {NestFactory} from '@nestjs/core';
+import {Module,Controller,Get,Post,Param,Body,Headers,UnauthorizedException,Injectable} from '@nestjs/common';
+import {JwtService} from '@nestjs/jwt';
+import {Pool} from 'pg'; import {scryptSync,timingSafeEqual,randomBytes} from 'crypto';
+const pool=new Pool({connectionString:process.env.DATABASE_URL||'postgres://kdgram:kdgram@localhost:5432/kdgram'});
+@Injectable() class AppService{constructor(private jwt:JwtService){} async user(headers:any){const h=headers.authorization||'';if(!h.startsWith('Bearer '))throw new UnauthorizedException();try{return this.jwt.verify(h.slice(7))}catch{throw new UnauthorizedException()}}
+async posts(){const r=await pool.query(`select p.id,u.username,p.text,p.created_at "createdAt",(select count(*) from likes l where l.post_id=p.id) likes from posts p join users u on u.id=p.user_id order by p.created_at desc limit 50`);return r.rows.map(x=>({...x,likes:Number(x.likes),liked:false}))}
+async stories(){const r=await pool.query(`select s.id,u.username,s.expires_at "expiresAt" from stories s join users u on u.id=s.user_id where s.expires_at>now() order by s.created_at desc`);return r.rows}
+async register(email:string,username:string,password:string){const salt=randomBytes(16);const key=scryptSync(password,salt,64);try{const r=await pool.query('insert into users(email,username,password_hash) values($1,$2,$3) returning id',[email,username,`${salt.toString('hex')}:${key.toString('hex')}`]);return {accessToken:this.jwt.sign({sub:r.rows[0].id,username})}}catch{throw new UnauthorizedException('ایمیل یا نام کاربری قبلاً ثبت شده است')}}
+async login(email:string,password:string){const r=await pool.query('select id,email,username,password_hash from users where email=$1',[email]);if(!r.rowCount)throw new UnauthorizedException('ایمیل یا رمز عبور نادرست است'); const [saltHex,keyHex]=r.rows[0].password_hash.split(':'); const key=scryptSync(password,Buffer.from(saltHex,'hex'),64); if(!timingSafeEqual(key,Buffer.from(keyHex,'hex')))throw new UnauthorizedException('ایمیل یا رمز عبور نادرست است');return {accessToken:this.jwt.sign({sub:r.rows[0].id,username:r.rows[0].username})}}
+async post(headers:any,text:string){const u=await this.user(headers);const r=await pool.query('insert into posts(user_id,text) values($1,$2) returning id',[u.sub,text]);return r.rows[0]}
+async like(headers:any,id:string){const u=await this.user(headers);await pool.query('insert into likes(user_id,post_id) values($1,$2) on conflict do nothing',[u.sub,id]);return {ok:true}}
+}
+@Controller() class AppController{constructor(private s:AppService){} @Get('health') health(){return {ok:true,name:'KDGRAM',storyHours:36}} @Get('posts') posts(){return this.s.posts()} @Get('stories') stories(){return this.s.stories()} @Post('auth/register') register(@Body() b:any){return this.s.register(b.email,b.username,b.password)} @Post('auth/login') login(@Body() b:any){return this.s.login(b.email,b.password)} @Post('posts') post(@Headers() h:any,@Body() b:any){return this.s.post(h,b.text)} @Post('posts/:id/like') like(@Headers() h:any,@Param('id') id:string){return this.s.like(h,id)}}
+@Module({imports:[],controllers:[AppController],providers:[AppService]}) class AppModule{}
+async function bootstrap(){const app=await NestFactory.create(AppModule);app.enableCors({origin:true});await app.listen(process.env.PORT||3001)}bootstrap();

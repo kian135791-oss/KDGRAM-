@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "KDGRAM",
+    "slug": "kdgram",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "kdgram",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-router"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kdgram.app"
+    },
+    "android": {
+      "package": "com.kdgram.app",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "description": "KDGRAM؛ شبکه اجتماعی و پیام‌رسان با پست، استوری ۳۶ ساعته، چت و کانال."
+  }
+}
